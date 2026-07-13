@@ -18,6 +18,7 @@
   const byId = Object.fromEntries(groups.map((g) => [g.id, g]));
 
   const railList = document.getElementById("railList");
+  const pairList = document.getElementById("pairList");
   const hotspots = document.getElementById("hotspots");
   const overlay = document.getElementById("overlay");
   const legend = document.getElementById("legend");
@@ -33,10 +34,38 @@
     )
     .join("");
 
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
   function shortLabel(g) {
     if (g.hotspot?.label) return g.hotspot.label;
     const t = (g.muzhi || "").replace(/（首题）/, "").trim();
     return t.slice(0, 12) || g.id;
+  }
+
+  function muzhiText(g) {
+    return ((g.muzhiRaw || g.muzhi || "未载").replaceAll("/", "／") || "未载").trim();
+  }
+
+  function sourcesHtml(g) {
+    if (!g.sources || g.sources.length === 0) {
+      return '<div class="pair-empty">传世史料未见对应记载</div>';
+    }
+    return g.sources
+      .map((s) => {
+        const text = (s.text || "未载").trim() || "未载";
+        return `<div class="pair-source">
+          <div class="pair-cite">${escapeHtml(s.cite || "出处待补")}</div>
+          <div class="pair-source-text">${escapeHtml(text)}</div>
+          ${s.note ? `<div class="pair-note">${escapeHtml(s.note)}</div>` : ""}
+        </div>`;
+      })
+      .join("");
   }
 
   function renderRail() {
@@ -69,6 +98,38 @@
       .join("");
   }
 
+  function renderPairs() {
+    pairList.innerHTML = groups
+      .map((g) => {
+        const rel = g.relation || "未判";
+        return `<article class="pair-card" data-id="${g.id}" tabindex="0"
+          style="--rel:${REL_COLORS[rel] || REL_COLORS["未判"]}"
+          role="button" aria-label="${g.id} ${shortLabel(g)}">
+          <div class="pair-head">
+            <span class="pair-id">
+              <i class="entry-dot" style="background:${REL_COLORS[rel] || REL_COLORS["未判"]}"></i>
+              ${g.id} · ${escapeHtml(shortLabel(g))}
+            </span>
+            <span class="pair-rel">${escapeHtml(rel)}</span>
+          </div>
+          <div class="pair-block muzhi">
+            <div class="pair-kicker">墓志原文</div>
+            <div class="pair-quote">${escapeHtml(muzhiText(g))}</div>
+          </div>
+          <div class="pair-block sources">
+            <div class="pair-kicker">传世史料</div>
+            ${sourcesHtml(g)}
+          </div>
+          ${
+            g.explain
+              ? `<div class="pair-explain">${escapeHtml(g.explain)}</div>`
+              : ""
+          }
+        </article>`;
+      })
+      .join("");
+  }
+
   function renderHotspots() {
     hotspots.innerHTML = groups
       .filter((g) => g.hotspot)
@@ -90,28 +151,35 @@
     document.querySelectorAll(".hotspot").forEach((el) => {
       el.classList.toggle("active", el.dataset.id === id);
     });
+    document.querySelectorAll(".pair-card").forEach((el) => {
+      el.classList.toggle("active", el.dataset.id === id);
+    });
   }
 
-  function setRailGlow(id) {
+  function setSyncGlow(id) {
     document.querySelectorAll(".entry").forEach((el) => {
       const on = el.dataset.id === id;
       el.classList.toggle("rail-glow", on);
-      if (on) {
-        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      }
+      if (on) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+    document.querySelectorAll(".pair-card").forEach((el) => {
+      const on = el.dataset.id === id;
+      el.classList.toggle("rail-glow", on);
+      if (on) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
     });
   }
 
-  function clearRailGlow() {
-    document.querySelectorAll(".entry.rail-glow").forEach((el) => {
-      el.classList.remove("rail-glow");
-    });
+  function clearSyncGlow() {
+    document
+      .querySelectorAll(".entry.rail-glow, .pair-card.rail-glow")
+      .forEach((el) => el.classList.remove("rail-glow"));
   }
 
   function openPair(id) {
     const g = byId[id];
     if (!g) return;
     setActive(id);
+    setSyncGlow(id);
 
     const rel = g.relation || "未判";
     const relTag = document.getElementById("relTag");
@@ -121,16 +189,15 @@
 
     document.getElementById("muzhiMeta").innerHTML = [
       `<span>${g.id}</span>`,
-      g.phase ? `<span>${g.phase}</span>` : "",
-      g.subject ? `<span>${g.subject}</span>` : "",
-      g.aspect ? `<span>${g.aspect}</span>` : "",
-      g.value ? `<span>${g.value}</span>` : "",
+      g.phase ? `<span>${escapeHtml(g.phase)}</span>` : "",
+      g.subject ? `<span>${escapeHtml(g.subject)}</span>` : "",
+      g.aspect ? `<span>${escapeHtml(g.aspect)}</span>` : "",
+      g.value ? `<span>${escapeHtml(g.value)}</span>` : "",
     ]
       .filter(Boolean)
       .join("");
 
-    const muzhiText = (g.muzhiRaw || g.muzhi || "未载").replaceAll("/", "／");
-    document.getElementById("muzhiQuote").textContent = muzhiText || "未载";
+    document.getElementById("muzhiQuote").textContent = muzhiText(g);
 
     const explain = document.getElementById("explain");
     if (g.explain) {
@@ -151,9 +218,9 @@
         .map((s) => {
           const text = (s.text || "未载").trim() || "未载";
           return `<div class="source-card">
-            <div class="source-cite">${s.cite || "出处待补"}</div>
-            <div class="source-text">${text}</div>
-            ${s.note ? `<div class="source-note">${s.note}</div>` : ""}
+            <div class="source-cite">${escapeHtml(s.cite || "出处待补")}</div>
+            <div class="source-text">${escapeHtml(text)}</div>
+            ${s.note ? `<div class="source-note">${escapeHtml(s.note)}</div>` : ""}
           </div>`;
         })
         .join("");
@@ -168,7 +235,22 @@
     overlay.setAttribute("aria-hidden", "true");
   }
 
+  function bindHoverSync(root, selector) {
+    root.addEventListener("pointerover", (e) => {
+      const el = e.target.closest(selector);
+      if (el?.dataset.id) setSyncGlow(el.dataset.id);
+    });
+    root.addEventListener("pointerout", (e) => {
+      const el = e.target.closest(selector);
+      if (!el) return;
+      const next = e.relatedTarget?.closest?.(selector);
+      if (next && next.dataset.id === el.dataset.id) return;
+      clearSyncGlow();
+    });
+  }
+
   renderRail();
+  renderPairs();
   renderHotspots();
 
   railList.addEventListener("click", (e) => {
@@ -176,23 +258,27 @@
     if (btn) openPair(btn.dataset.id);
   });
 
+  pairList.addEventListener("click", (e) => {
+    const card = e.target.closest(".pair-card");
+    if (card) openPair(card.dataset.id);
+  });
+
+  pairList.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const card = e.target.closest(".pair-card");
+    if (!card) return;
+    e.preventDefault();
+    openPair(card.dataset.id);
+  });
+
   hotspots.addEventListener("click", (e) => {
     const btn = e.target.closest(".hotspot");
     if (btn) openPair(btn.dataset.id);
   });
 
-  hotspots.addEventListener("pointerover", (e) => {
-    const btn = e.target.closest(".hotspot");
-    if (btn) setRailGlow(btn.dataset.id);
-  });
-
-  hotspots.addEventListener("pointerout", (e) => {
-    const btn = e.target.closest(".hotspot");
-    if (!btn) return;
-    const next = e.relatedTarget?.closest?.(".hotspot");
-    if (next && next.dataset.id === btn.dataset.id) return;
-    clearRailGlow();
-  });
+  bindHoverSync(hotspots, ".hotspot");
+  bindHoverSync(railList, ".entry");
+  bindHoverSync(pairList, ".pair-card");
 
   document.getElementById("closeBtn").addEventListener("click", closePair);
   overlay.addEventListener("click", (e) => {
