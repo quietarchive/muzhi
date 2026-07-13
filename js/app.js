@@ -16,6 +16,8 @@
 
   const groups = DATA.groups.filter((g) => /^D\d+/.test(g.id));
   const byId = Object.fromEntries(groups.map((g) => [g.id, g]));
+  let selectedId = null;
+  let hoverId = null;
 
   const railList = document.getElementById("railList");
   const pairList = document.getElementById("pairList");
@@ -23,6 +25,8 @@
   const overlay = document.getElementById("overlay");
   const legend = document.getElementById("legend");
   const footerNote = document.getElementById("footerNote");
+  const leftRail = document.querySelector(".rail-left");
+  const rightRail = document.querySelector(".rail-right");
 
   footerNote.textContent = DATA.meta?.sourceNote || "";
 
@@ -145,6 +149,7 @@
   }
 
   function setActive(id) {
+    selectedId = id;
     document.querySelectorAll(".entry").forEach((el) => {
       el.classList.toggle("active", el.dataset.id === id);
     });
@@ -156,30 +161,63 @@
     });
   }
 
-  function setSyncGlow(id) {
+  function scrollRailsAligned(id) {
+    if (!leftRail || !rightRail) return;
+    const leftEl = railList.querySelector(`.entry[data-id="${id}"]`);
+    const rightEl = pairList.querySelector(`.pair-card[data-id="${id}"]`);
+    if (!leftEl || !rightEl) return;
+
+    // Place both selected items at the same vertical band in each rail.
+    const ratio = 0.22;
+    const align = (container, el) => {
+      const cRect = container.getBoundingClientRect();
+      const eRect = el.getBoundingClientRect();
+      const delta = eRect.top - cRect.top - cRect.height * ratio;
+      container.scrollBy({ top: delta, behavior: "smooth" });
+    };
+
+    align(leftRail, leftEl);
+    // Wait one frame so both start from current layout, then nudge again if needed.
+    requestAnimationFrame(() => align(rightRail, rightEl));
+  }
+
+  function applyGlow(id) {
     document.querySelectorAll(".entry").forEach((el) => {
-      const on = el.dataset.id === id;
-      el.classList.toggle("rail-glow", on);
-      if (on) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      el.classList.toggle("rail-glow", el.dataset.id === id);
     });
     document.querySelectorAll(".pair-card").forEach((el) => {
-      const on = el.dataset.id === id;
-      el.classList.toggle("rail-glow", on);
-      if (on) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      el.classList.toggle("rail-glow", el.dataset.id === id);
     });
   }
 
+  function setSyncGlow(id, { align = true } = {}) {
+    hoverId = id;
+    applyGlow(id);
+    if (align) scrollRailsAligned(id);
+  }
+
   function clearSyncGlow() {
-    document
-      .querySelectorAll(".entry.rail-glow, .pair-card.rail-glow")
-      .forEach((el) => el.classList.remove("rail-glow"));
+    hoverId = null;
+    const keep = selectedId;
+    if (keep) {
+      applyGlow(keep);
+      scrollRailsAligned(keep);
+    } else {
+      document
+        .querySelectorAll(".entry.rail-glow, .pair-card.rail-glow")
+        .forEach((el) => el.classList.remove("rail-glow"));
+    }
+  }
+
+  function selectFromStage(id) {
+    setActive(id);
+    setSyncGlow(id, { align: true });
   }
 
   function openPair(id) {
     const g = byId[id];
     if (!g) return;
-    setActive(id);
-    setSyncGlow(id);
+    selectFromStage(id);
 
     const rel = g.relation || "未判";
     const relTag = document.getElementById("relTag");
@@ -233,12 +271,16 @@
   function closePair() {
     overlay.classList.remove("open");
     overlay.setAttribute("aria-hidden", "true");
+    if (selectedId) {
+      applyGlow(selectedId);
+      scrollRailsAligned(selectedId);
+    }
   }
 
   function bindHoverSync(root, selector) {
     root.addEventListener("pointerover", (e) => {
       const el = e.target.closest(selector);
-      if (el?.dataset.id) setSyncGlow(el.dataset.id);
+      if (el?.dataset.id) setSyncGlow(el.dataset.id, { align: true });
     });
     root.addEventListener("pointerout", (e) => {
       const el = e.target.closest(selector);

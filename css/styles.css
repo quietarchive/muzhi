@@ -172,35 +172,47 @@ body {
   border-color: rgba(212, 175, 110, 0.22);
 }
 
-.entry.active {
-  background: rgba(251, 248, 241, 0.08);
-  border-color: rgba(212, 175, 110, 0.4);
-  transform: translateX(2px);
-}
-
+.entry.active,
 .entry.rail-glow {
   z-index: 2;
   background: color-mix(in srgb, var(--rel, #d4af6e) 16%, rgba(251, 248, 241, 0.06));
   border-color: color-mix(in srgb, var(--rel, #d4af6e) 55%, white);
   color: #fff8ea;
   transform: translateX(8px) scale(1.06);
+}
+
+.entry.rail-glow,
+.entry.active.rail-glow {
   animation: railBreathe 2.4s ease-in-out infinite;
 }
 
+.entry.active:not(.rail-glow) {
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--rel, #d4af6e) 16%, transparent),
+    0 0 18px color-mix(in srgb, var(--rel, #d4af6e) 35%, transparent),
+    0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.entry.active .entry-id,
 .entry.rail-glow .entry-id {
   color: color-mix(in srgb, var(--rel, #d4af6e) 45%, #f0e7d6);
   font-size: 0.78rem;
 }
 
+.entry.active .entry-title,
 .entry.rail-glow .entry-title {
   font-size: 1.08rem;
   letter-spacing: 0.03em;
 }
 
+.entry.active .entry-dot,
 .entry.rail-glow .entry-dot {
   box-shadow:
     0 0 0 3px color-mix(in srgb, var(--rel, #d4af6e) 28%, transparent),
     0 0 12px color-mix(in srgb, var(--rel, #d4af6e) 70%, transparent);
+}
+
+.entry.rail-glow .entry-dot {
   animation: dotPulse 2.4s ease-in-out infinite;
 }
 
@@ -275,24 +287,34 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.pair-card.active {
-  border-color: rgba(212, 175, 110, 0.42);
-  background: rgba(251, 248, 241, 0.07);
-}
-
+.pair-card.active,
 .pair-card.rail-glow {
   z-index: 2;
   background: color-mix(in srgb, var(--rel, #d4af6e) 14%, rgba(251, 248, 241, 0.05));
   border-color: color-mix(in srgb, var(--rel, #d4af6e) 55%, white);
   transform: translateX(-6px) scale(1.035);
+}
+
+.pair-card.rail-glow,
+.pair-card.active.rail-glow {
   animation: pairBreathe 2.4s ease-in-out infinite;
 }
 
+.pair-card.active:not(.rail-glow) {
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--rel, #d4af6e) 16%, transparent),
+    0 0 22px color-mix(in srgb, var(--rel, #d4af6e) 32%, transparent),
+    0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.pair-card.active .pair-quote,
+.pair-card.active .pair-source-text,
 .pair-card.rail-glow .pair-quote,
 .pair-card.rail-glow .pair-source-text {
   font-size: 0.92rem;
 }
 
+.pair-card.active .pair-id,
 .pair-card.rail-glow .pair-id {
   font-size: 0.8rem;
   color: #fff8ea;
