@@ -143,8 +143,14 @@ body {
   border-radius: 10px;
   padding: 0.55rem 0.65rem;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s,
+    color 0.25s;
   font: inherit;
+  transform-origin: left center;
 }
 
 .entry:hover {
@@ -158,6 +164,32 @@ body {
   transform: translateX(2px);
 }
 
+.entry.rail-glow {
+  z-index: 2;
+  background: color-mix(in srgb, var(--rel, #d4af6e) 16%, rgba(251, 248, 241, 0.06));
+  border-color: color-mix(in srgb, var(--rel, #d4af6e) 55%, white);
+  color: #fff8ea;
+  transform: translateX(8px) scale(1.06);
+  animation: railBreathe 2.4s ease-in-out infinite;
+}
+
+.entry.rail-glow .entry-id {
+  color: color-mix(in srgb, var(--rel, #d4af6e) 45%, #f0e7d6);
+  font-size: 0.78rem;
+}
+
+.entry.rail-glow .entry-title {
+  font-size: 1.08rem;
+  letter-spacing: 0.03em;
+}
+
+.entry.rail-glow .entry-dot {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--rel, #d4af6e) 28%, transparent),
+    0 0 12px color-mix(in srgb, var(--rel, #d4af6e) 70%, transparent);
+  animation: dotPulse 2.4s ease-in-out infinite;
+}
+
 .entry-id {
   display: inline-flex;
   align-items: center;
@@ -165,12 +197,14 @@ body {
   font-size: 0.72rem;
   color: #cfc6b6;
   margin-bottom: 0.2rem;
+  transition: color 0.25s, font-size 0.3s;
 }
 
 .entry-dot {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
+  transition: box-shadow 0.3s;
 }
 
 .entry-title {
@@ -181,6 +215,26 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: font-size 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), letter-spacing 0.3s;
+}
+
+@keyframes railBreathe {
+  0%, 100% {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--rel, #d4af6e) 0%, transparent),
+      0 6px 16px rgba(0, 0, 0, 0.18);
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--rel, #d4af6e) 18%, transparent),
+      0 0 22px color-mix(in srgb, var(--rel, #d4af6e) 42%, transparent),
+      0 10px 24px rgba(0, 0, 0, 0.28);
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.35); opacity: 1; }
 }
 
 .stage {

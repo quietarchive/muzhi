@@ -55,7 +55,8 @@
       ${p.items
         .map(
           (g) => `
-        <button class="entry" type="button" data-id="${g.id}">
+        <button class="entry" type="button" data-id="${g.id}"
+          style="--rel:${REL_COLORS[g.relation] || REL_COLORS["未判"]}">
           <div class="entry-id">
             <i class="entry-dot" style="background:${REL_COLORS[g.relation] || REL_COLORS["未判"]}"></i>
             ${g.id} · ${g.aspect || "—"}
@@ -88,6 +89,22 @@
     });
     document.querySelectorAll(".hotspot").forEach((el) => {
       el.classList.toggle("active", el.dataset.id === id);
+    });
+  }
+
+  function setRailGlow(id) {
+    document.querySelectorAll(".entry").forEach((el) => {
+      const on = el.dataset.id === id;
+      el.classList.toggle("rail-glow", on);
+      if (on) {
+        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    });
+  }
+
+  function clearRailGlow() {
+    document.querySelectorAll(".entry.rail-glow").forEach((el) => {
+      el.classList.remove("rail-glow");
     });
   }
 
@@ -162,6 +179,19 @@
   hotspots.addEventListener("click", (e) => {
     const btn = e.target.closest(".hotspot");
     if (btn) openPair(btn.dataset.id);
+  });
+
+  hotspots.addEventListener("pointerover", (e) => {
+    const btn = e.target.closest(".hotspot");
+    if (btn) setRailGlow(btn.dataset.id);
+  });
+
+  hotspots.addEventListener("pointerout", (e) => {
+    const btn = e.target.closest(".hotspot");
+    if (!btn) return;
+    const next = e.relatedTarget?.closest?.(".hotspot");
+    if (next && next.dataset.id === btn.dataset.id) return;
+    clearRailGlow();
   });
 
   document.getElementById("closeBtn").addEventListener("click", closePair);
