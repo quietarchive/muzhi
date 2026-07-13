@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>对镜 · 上官婉儿墓志史料对读</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-name">对镜</div>
+      <div class="brand-sub">上官婉儿墓志 · 传世史料句级对读</div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="hint">点击拓片高亮句，或左侧目录</div>
+  </header>
+
+  <div class="layout">
+    <aside class="rail">
+      <h2>对读目录</h2>
+      <div id="railList"></div>
+    </aside>
+    <main class="stage">
+      <div class="rubbing-frame" id="rubbingFrame">
+        <img src="assets/shangguan-muzhi.png" alt="大唐故婕妤上官氏墓志铭并序拓片" />
+        <div class="hotspots" id="hotspots"></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="footer-note" id="footerNote"></div>
+
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="stack" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+      <article class="panel muzhi" id="panelMuzhi">
+        <button class="close-btn" type="button" id="closeBtn" aria-label="关闭">×</button>
+        <div class="panel-head">
+          <div class="panel-kicker">墓志原文</div>
+          <span class="rel-tag" id="relTag"></span>
+        </div>
+        <div class="meta-row" id="muzhiMeta"></div>
+        <div class="quote" id="muzhiQuote"></div>
+        <div class="explain" id="explain" hidden></div>
+      </article>
+      <article class="panel sources" id="panelSources">
+        <div class="panel-head">
+          <div class="panel-kicker">传世史料</div>
+        </div>
+        <div id="sourcesBody"></div>
+      </article>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
